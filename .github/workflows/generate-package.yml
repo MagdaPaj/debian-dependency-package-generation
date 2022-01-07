@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Generate DEB package
-        run: src/build-package.sh
-        
-      - name: Publis DEB package
+        run: src/build-package.sh 'package-history'
+
+      - name: Publish DEB package
         run: echo 'Work in progress'
