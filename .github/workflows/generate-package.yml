@@ -36,4 +36,4 @@ jobs:
         with:
           files: |
             output/dependency-pack/DEBIAN/control
-            LICENSE
+            output/dependency-pack.deb
