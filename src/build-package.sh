@@ -29,3 +29,7 @@ echo "Architecture: amd64" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
 echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1})" >> control
 echo "Description: Dependency Pack." >> control
+
+dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
+
+ls
