@@ -5,7 +5,8 @@ name: Generate DEB Package
 # Controls when the workflow will run
 on:
   push:
-    branches: [ main ]
+    tags:
+      - "v*.*.*"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,8 +22,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Generate DEB package
-        run: src/build-package.sh 'package-history' 'output'
+      - name: Get the tag version
+        id: get_tag_version
+        run: echo ::set-output name=VERSION::$(echo ${GITHUB_REF#refs/tags/} | tr -d 'v')
 
-      - name: Publish DEB package
-        run: cat output/dependency-pack/DEBIAN/control
+      - name: Generate DEB package
+        run: src/build-package.sh 'package-history' 'output' ${{ steps.get_tag_version.outputs.VERSION }}
+
+      - name: Release and publish DEB package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            output/dependency-pack/DEBIAN/control
+            output/dependency-pack.deb
