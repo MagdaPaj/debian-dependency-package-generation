@@ -27,3 +27,23 @@ To create a new dependency package a new release must be created. To do so:
 3. commit and push your changes
 4. create a new tag following the semantic versioning (e.g. `git tag v0.0.5`)
 5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with a dependency package as an asset.
+
+## Package installation
+
+Download the dependency package from a selected release. To install it, run:
+
+```bash
+sudo apt install ./dependency-pack.deb
+```
+
+If there is an error with unmet dependencies, you also need to add packages with their exact version from the `Depends` list to the above command. To get the `Depends` list:
+
+```bash
+dpkg-deb -f ./dependency-pack.deb control Depends
+```
+
+Command syntax:
+
+```bash
+sudo apt install ./dependency-pack.deb dependency-a=1.2.3-1 dependency-b=1.9.1-3
+```
