@@ -17,11 +17,11 @@ echo $tagVersion
 cd $packageFolder
 origin=$(ls --sort=version | head -n 1)
 current=$(ls --sort=version | tail -n 1)
-addedLines=$(comm -13 $origin $current)
-added=$(echo $addedLines | tr '\n' ', ')
+comm -13 $origin $current >> delta
+added=$(cat delta | tr '\n' ',')
 echo "Added $added"
 
-removed=$(comm -23 $origin $current | tr '\n' ', ')
+removed=$(comm -23 $origin $current | tr '\n' ',')
 echo "Removed $removed"
 
 mkdir -p $outputFolder/dependency-pack/DEBIAN
@@ -31,7 +31,7 @@ echo "Package: dependency-pack" > control
 echo "Version: $tagVersion-$current" >> control
 echo "Architecture: $(dpkg --print-architecture)" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
-echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1}), dependency-pack-pinning (=$tagVersion-$current)" >> control
+echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1}),dependency-pack-pinning (=$tagVersion-$current)" >> control
 echo "Description: Dependency Pack." >> control
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
@@ -49,7 +49,7 @@ mkdir -p $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
 cd $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
 touch 1001-honor-dependency-pack
 
-echo $addedLines | while read line
+while IFS= read -r line
 do
 	package=$(echo $line | sed 's/\(.*\)(=.*)/\1/')
 	version=$(echo $line | sed 's/.*(=\(.*\))/\1/')
@@ -57,6 +57,8 @@ do
 	echo "Pin: version $version" >> 1001-honor-dependency-pack
 	echo "Pin-Priority: 1001" >> 1001-honor-dependency-pack
 	echo "" >> 1001-honor-dependency-pack
-done
+done < "$packageFolder/delta"
+
+rm $packageFolder/delta
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack-pinning"
