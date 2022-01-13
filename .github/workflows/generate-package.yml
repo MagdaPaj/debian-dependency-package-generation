@@ -29,9 +29,16 @@ jobs:
       - name: Generate DEB package
         run: src/build-package.sh 'package-history' 'output' ${{ steps.get_tag_version.outputs.VERSION }}
 
-      - name: Release and publish DEB package
+      - name: Release and publish dependency package
         uses: softprops/action-gh-release@v1
         with:
           files: |
             output/dependency-pack/DEBIAN/control
             output/dependency-pack.deb
+
+      - name: Release and publish dependency pinning package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            output/dependency-pack-pinning/DEBIAN/control
+            output/dependency-pack-pinning.deb
