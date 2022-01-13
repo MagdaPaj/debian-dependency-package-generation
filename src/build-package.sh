@@ -17,7 +17,8 @@ echo $tagVersion
 cd $packageFolder
 origin=$(ls --sort=version | head -n 1)
 current=$(ls --sort=version | tail -n 1)
-added=$(comm -13 $origin $current | tr '\n' ', ')
+addedLines=$(comm -13 $origin $current)
+added=$(echo $addedLines | tr '\n' ', ')
 echo "Added $added"
 
 removed=$(comm -23 $origin $current | tr '\n' ', ')
@@ -28,9 +29,34 @@ cd $outputFolder/dependency-pack/DEBIAN
 
 echo "Package: dependency-pack" > control
 echo "Version: $tagVersion-$current" >> control
-echo "Architecture: amd64" >> control
+echo "Architecture: $(dpkg --print-architecture)" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
-echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1})" >> control
+echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1}), dependency-pack-pinning (=$tagVersion-$current)" >> control
 echo "Description: Dependency Pack." >> control
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
+
+mkdir -p $outputFolder/dependency-pack-pinning/DEBIAN
+cd $outputFolder/dependency-pack-pinning/DEBIAN
+
+echo "Package: dependency-pack-pinning" > control
+echo "Version: $tagVersion-$current" >> control
+echo "Architecture: $(dpkg --print-architecture)" >> control
+echo "Maintainer: YourName <YourName@YourCompany>" >> control
+echo "Description: Dependency Package Version Pinning." >> control
+
+mkdir -p $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
+cd $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
+touch 1001-honor-dependency-pack
+
+echo $addedLines | while read line
+do
+	package=$(echo $line | sed 's/\(.*\)(=.*)/\1/')
+	version=$(echo $line | sed 's/.*(=\(.*\))/\1/')
+	echo "Package: $package" > 1001-honor-dependency-pack
+	echo "Pin: version $version" >> 1001-honor-dependency-pack
+	echo "Pin-Priority: 1001" >> 1001-honor-dependency-pack
+	echo "" >> 1001-honor-dependency-pack
+done
+
+dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack-pinning"
