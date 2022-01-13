@@ -35,10 +35,5 @@ jobs:
           files: |
             output/dependency-pack/DEBIAN/control
             output/dependency-pack.deb
-
-      - name: Release and publish dependency pinning package
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
             output/dependency-pack-pinning/DEBIAN/control
             output/dependency-pack-pinning.deb
