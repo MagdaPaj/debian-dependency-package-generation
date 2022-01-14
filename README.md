@@ -6,7 +6,7 @@ This repository contains pipelines and scripts for generating the Debian depende
 
 ## Structure of dependency packages
 
-Dependency packages consist of a `control` file defining the desired state by appending all pinned packages to the `Depends: ` section.
+Dependency packages consist of a `control` file defining the desired state by enumerating all dependencies in the `Depends: ` section.
 
 ```
 Package: dependency-pack
@@ -20,7 +20,7 @@ Description: Dependency Pack.
 
 ## Structure of companion packages
 
-Companion packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d` during installation. Every dependent package results in an entry with the following structure:
+Companion packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d/` during installation. Every dependent package results in an entry with the following structure:
 
 ```
 Package: aziot-identity-service 
@@ -28,13 +28,15 @@ Pin: version 1.2.4-1
 Pin-Priority: 1001
 ```
 
+The impact of APT preferences can be inspected by running `apt-cache policy your-package-name`.
+
 
 ## Release creation
 
 To create a new dependency package, a new release must be created. To do so:
 
 1. create a new file under `package-history` folder using the current value of `$EPOCHSECONDS` as a file name
-2. define in the file your package list containing package names and versions
+2. in the newly create file, put each package name and its pinned version on a new line, e.g. `package-name (=1.1.0-1)`
 3. commit and push your changes
 4. create a new tag following the semantic versioning (e.g. `git tag v0.0.5`)
 5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with the dependency and companion package as assets.
