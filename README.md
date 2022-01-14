@@ -1,14 +1,14 @@
 # Debian dependency package generation
 
-A dependency package represents a desired state of a system, which is defined by a list of Debian packages with corresponding versions. All required packages are captured as dependencies in a new Debian package.
+A dependency package represents a desired state of a system, which is defined by a list of Debian packages with corresponding versions. All required packages are captured as dependencies in the control file of an otherwise shallow Debian package. APT will try to automatically resolve and install these dependencies when running `apt install dependency-pack`. APT is very opinionated about which dependent package version to install when resolving dependencies: It will always try to install the latest available package version that can be found in all source package repositories unless instructed differently using [APT preferences](https://manpages.debian.org/bullseye/apt/apt_preferences.5.en.html).
 
-This repository contains pipelines for generating the Debian dependency package.
+This repository contains pipelines and scripts for generating the Debian dependency package and its optional companion package that modifies the APT preferences to force the installation of the exact version of the dependent package.
 
 ## Structure of dependency packages
 
-Dependency packages consist of a `control` file defining the desired state.
+Dependency packages consist of a `control` file defining the desired state by appending all pinned packages to the `Depends: ` section.
 
-```bash
+```
 Package: dependency-pack
 Version: 0.0.1
 Architecture: amd64
@@ -18,15 +18,26 @@ Description: Dependency Pack.
  You can add a longer description here. Mind the space at the beginning of this paragraph.
 ```
 
+## Structure of companion packages
+
+Companion packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d` during installation. Every dependent package results in an entry with the following structure:
+
+```
+Package: aziot-identity-service 
+Pin: version 1.2.4-1
+Pin-Priority: 1001
+```
+
+
 ## Release creation
 
-To create a new dependency package a new release must be created. To do so:
+To create a new dependency package, a new release must be created. To do so:
 
-1. create a new file under `package-history` folder with the epoch time as a file name
+1. create a new file under `package-history` folder using the current value of `$EPOCHSECONDS` as a file name
 2. define in the file your package list containing package names and versions
 3. commit and push your changes
 4. create a new tag following the semantic versioning (e.g. `git tag v0.0.5`)
-5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with a dependency package as an asset.
+5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with the dependency and companion package as assets.
 
 ## Package installation
 
@@ -36,14 +47,18 @@ Download the dependency package from a selected release. To install it, run:
 sudo apt install ./dependency-pack.deb
 ```
 
-If there is an error with unmet dependencies, you also need to add packages with their exact version from the `Depends` list to the above command. To get the `Depends` list:
+If there is an error with unmet dependencies because APT would like to install a newer version of a dependent package, you have multiple options to force the installation of the pinned versions.
 
+1. Install the companion package first
+```bash
+sudo apt install ./dependency-pack-pinning.deb
+sudo apt install ./dependency-pack.deb
+```
+
+2. Inspect the dependency list manually and install every dependent package explicitly
 ```bash
 dpkg-deb -f ./dependency-pack.deb control Depends
-```
-
-Command syntax:
-
-```bash
 sudo apt install ./dependency-pack.deb dependency-a=1.2.3-1 dependency-b=1.9.1-3
 ```
+
+3. Use private repositories as package sources and make sure they only contain packages that match the dependent packages' versions.
