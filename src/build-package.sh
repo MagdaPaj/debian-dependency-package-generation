@@ -47,13 +47,13 @@ echo "Description: Dependency Package Version Pinning." >> control
 
 mkdir -p $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
 cd $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
-touch 1001-honor-dependency-pack
+echo "" > 1001-honor-dependency-pack
 
 while IFS= read -r line
 do
 	package=$(echo $line | sed 's/\(.*\)(=.*)/\1/')
 	version=$(echo $line | sed 's/.*(=\(.*\))/\1/')
-	echo "Package: $package" > 1001-honor-dependency-pack
+	echo "Package: $package" >> 1001-honor-dependency-pack
 	echo "Pin: version $version" >> 1001-honor-dependency-pack
 	echo "Pin-Priority: 1001" >> 1001-honor-dependency-pack
 	echo "" >> 1001-honor-dependency-pack
