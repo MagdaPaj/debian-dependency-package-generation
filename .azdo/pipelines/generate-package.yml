@@ -11,15 +11,17 @@ stages:
 
   variables:
   - group: DEV
+  - name: VERSION-ID
+    value: $[replace(variables['BUILD.SOURCEBRANCHNAME'], 'v', '')]
   - name: DEPENDENCY-PACK-NAME
-    value: "dependency-pack_$(Build.SourceBranchName).deb"
+    value: "dependency-pack_$(VERSION-ID).deb"
   - name: DEPENDENCY-PACK-PINNING-NAME
-    value: "dependency-pack-pinning_$(Build.SourceBranchName).deb"
+    value: "dependency-pack-pinning_$(VERSION-ID).deb"
 
   jobs:
   - job: PackageGeneration
     steps:
-    - script: src/build-package.sh 'package-history' 'output' "$(Build.SourceBranchName)"
+    - script: src/build-package.sh 'package-history' 'output' "$(VERSION-ID)"
       displayName: 'Generate packages locally'
 
     - script: |
