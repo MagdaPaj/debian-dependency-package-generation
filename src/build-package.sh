@@ -35,6 +35,7 @@ echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1})" >> contro
 echo "Description: Dependency Pack." >> control
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
+mv "$outputFolder/dependency-pack.deb" "$outputFolder/dependency-pack_$versionTag.deb"
 
 mkdir -p $outputFolder/dependency-pack-pinning/DEBIAN
 cd $outputFolder/dependency-pack-pinning/DEBIAN
@@ -62,3 +63,4 @@ done < "$packageFolder/delta"
 rm $packageFolder/delta
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack-pinning"
+mv "$outputFolder/dependency-pack-pinning.deb" "$outputFolder/dependency-pack-pinning_$versionTag.deb"

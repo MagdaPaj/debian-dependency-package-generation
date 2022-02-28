@@ -11,25 +11,21 @@ stages:
 
   variables:
   - group: DEV
-  - name: ARTIFACTORY-USERNAME
-    value: $(username)
-  - name: ARTIFACTORY-PASSWORD
-    value: $(password)
-  - name: ARTIFACTORY-URL
-    value: $(url)
   - name: DEPENDENCY-PACK-NAME
     value: "dependency-pack_$(Build.SourceBranchName).deb"
   - name: DEPENDENCY-PACK-PINNING-NAME
     value: "dependency-pack-pinning_$(Build.SourceBranchName).deb"
 
-  steps:
-  - script: src/build-package.sh 'package-history' 'output' $(VERSION_ID)
-    displayName: 'Generate packages locally'
+  jobs:
+  - job: PackageGeneration
+    steps:
+    - script: src/build-package.sh 'package-history' 'output' "$(Build.SourceBranchName)"
+      displayName: 'Generate packages locally'
 
-  - script: |
-      curl -u "$ARTIFACTORY-USERNAME:$ARTIFACTORY-PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
-      curl -u "$ARTIFACTORY-USERNAME:$ARTIFACTORY-PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
-    displayName: 'Upload packages to Artifactory'
-    env: # this is required for secret library variables
-        ARTIFACTORY-USERNAME: $(ARTIFACTORY-USERNAME)
-        ARTIFACTORY-PASSWORD: $(ARTIFACTORY-PASSWORD)
+    - script: |
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+      displayName: 'Upload packages to Artifactory'
+      env: # this is required for secret library variables
+          USERNAME: $(ARTIFACTORY-USERNAME)
+          PASSWORD: $(ARTIFACTORY-PASSWORD)
