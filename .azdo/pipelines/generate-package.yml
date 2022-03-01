@@ -1,0 +1,101 @@
+trigger:
+  tags:
+    include:
+    - '*'
+
+variables:
+  - name: VERSION-ID
+    value: $[replace(variables['BUILD.SOURCEBRANCHNAME'], 'v', '')]
+  - name: DEPENDENCY-PACK-NAME
+    value: "dependency-pack_$(VERSION-ID).deb"
+  - name: DEPENDENCY-PACK-PINNING-NAME
+    value: "dependency-pack-pinning_$(VERSION-ID).deb"
+
+stages:
+- stage: DEV
+  pool:
+    vmImage: ubuntu-latest
+
+  variables:
+  - group: DEV
+
+  jobs:
+  - job: generate_packages_for_dev
+    displayName: Generate packages for DEV environment
+    steps:
+    - script: src/build-package.sh 'package-history' 'output' "$(VERSION-ID)"
+      displayName: 'Generate packages locally'
+
+    - script: |
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+      displayName: 'Upload packages to Artifactory'
+      env: # this is required for secret library variables
+          USERNAME: $(ARTIFACTORY-USERNAME)
+          PASSWORD: $(ARTIFACTORY-PASSWORD)
+
+- stage: TEST
+  pool:
+    vmImage: ubuntu-latest
+
+  variables:
+  - group: TEST
+
+  jobs:
+  - job: wait_for_approval
+    displayName: 'Wait for approval to release to TEST'
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      displayName: 'Approve release to TEST'
+      timeoutInMinutes: 4320  # Task times out in 3 days
+      inputs:
+        onTimeout: 'reject'
+
+  - job: generate_packages_for_test
+    displayName: Generate packages for TEST environment
+    dependsOn: wait_for_approval
+    steps:
+    - script: src/build-package.sh 'package-history' 'output' "$(VERSION-ID)"
+      displayName: 'Generate packages locally'
+
+    - script: |
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+      displayName: 'Upload packages to Artifactory'
+      env: # this is required for secret library variables
+          USERNAME: $(ARTIFACTORY-USERNAME)
+          PASSWORD: $(ARTIFACTORY-PASSWORD)
+
+- stage: PROD
+  pool:
+    vmImage: ubuntu-latest
+
+  variables:
+  - group: PROD
+
+  jobs:
+  - job: wait_for_approval
+    displayName: 'Wait for approval to release to PROD'
+    pool: server
+    steps:
+    - task: ManualValidation@0
+      displayName: 'Approve release to PROD'
+      timeoutInMinutes: 4320  # Task times out in 3 days
+      inputs:
+        onTimeout: 'reject'
+
+  - job: generate_packages_for_prod
+    dependsOn: wait_for_approval
+    displayName: Generate packages for PROD environment
+    steps:
+    - script: src/build-package.sh 'package-history' 'output' "$(VERSION-ID)"
+      displayName: 'Generate packages locally'
+
+    - script: |
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+      displayName: 'Upload packages to Artifactory'
+      env: # this is required for secret library variables
+          USERNAME: $(ARTIFACTORY-USERNAME)
+          PASSWORD: $(ARTIFACTORY-PASSWORD)

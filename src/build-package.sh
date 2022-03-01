@@ -4,15 +4,15 @@ set -euxo pipefail
 
 if [ "$#" -ne 3 ]
 then
-	echo "Script requires 3 parameters: 'path to package folder', 'path to output folder', `tag version`"
+	echo "Script requires 3 parameters: 'path to package folder', 'path to output folder', `version tag`"
 	exit 1
 fi
 
 packageFolder=$(cd $1 && pwd)
 outputFolder=$(mkdir -p $2 && cd $2 && pwd)
-tagVersion=$3
+versionTag=$3
 
-echo $tagVersion
+echo $versionTag
 
 cd $packageFolder
 origin=$(ls --sort=version | head -n 1)
@@ -28,20 +28,21 @@ mkdir -p $outputFolder/dependency-pack/DEBIAN
 cd $outputFolder/dependency-pack/DEBIAN
 
 echo "Package: dependency-pack" > control
-echo "Version: $tagVersion-$current" >> control
-echo "Architecture: $(dpkg --print-architecture)" >> control
+echo "Version: $versionTag-$current" >> control
+echo "Architecture: all" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
-echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1}),dependency-pack-pinning (=$tagVersion-$current)" >> control
+echo "Depends: $([ -z "$added" ] && echo $added || echo ${added::-1})" >> control
 echo "Description: Dependency Pack." >> control
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
+mv "$outputFolder/dependency-pack.deb" "$outputFolder/dependency-pack_$versionTag.deb"
 
 mkdir -p $outputFolder/dependency-pack-pinning/DEBIAN
 cd $outputFolder/dependency-pack-pinning/DEBIAN
 
 echo "Package: dependency-pack-pinning" > control
-echo "Version: $tagVersion-$current" >> control
-echo "Architecture: $(dpkg --print-architecture)" >> control
+echo "Version: $versionTag-$current" >> control
+echo "Architecture: all" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
 echo "Description: Dependency Package Version Pinning." >> control
 
@@ -62,3 +63,4 @@ done < "$packageFolder/delta"
 rm $packageFolder/delta
 
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack-pinning"
+mv "$outputFolder/dependency-pack-pinning.deb" "$outputFolder/dependency-pack-pinning_$versionTag.deb"
