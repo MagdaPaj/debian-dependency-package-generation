@@ -1,17 +1,46 @@
-trigger:
-  tags:
-    include:
-    - '*'
+trigger: none
+
+parameters:
+- name: MAJOR
+  displayName: Major Version Number (X.*.*)
+  type: number
+  default: 0
+- name: MINOR
+  displayName: Minor Version Number (*.X.*)
+  type: number
+  default: 0
+- name: PATCH
+  displayName: Patch Version Number (*.*.X)
+  type: number
+  default: 0
 
 variables:
   - name: VERSION-ID
-    value: $[replace(variables['BUILD.SOURCEBRANCHNAME'], 'v', '')]
+    value: "${{ parameters.MAJOR }}.${{ parameters.MINOR }}.${{ parameters.PATCH }}"
   - name: DEPENDENCY-PACK-NAME
     value: "dependency-pack_$(VERSION-ID).deb"
   - name: DEPENDENCY-PACK-PINNING-NAME
     value: "dependency-pack-pinning_$(VERSION-ID).deb"
 
 stages:
+- stage: TAG
+  pool:
+    vmImage: ubuntu-latest
+
+  jobs:
+  - job: tag
+    displayName: Validate version tag
+    steps:
+
+    - checkout: self
+      persistCredentials: true
+
+    - script: git tag $(VERSION-ID)
+      displayName: 'Set GIT version tag'
+
+    - script: git push --tags
+      displayName: 'Push GIT version tag'
+
 - stage: DEV
   pool:
     vmImage: ubuntu-latest
