@@ -23,7 +23,7 @@ Description: Dependency Pack.
 Companion packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d/` during installation. Every dependent package results in an entry with the following structure:
 
 ```
-Package: aziot-identity-service 
+Package: aziot-identity-service
 Pin: version 1.2.4-1
 Pin-Priority: 1001
 ```
@@ -64,3 +64,19 @@ sudo apt install ./dependency-pack.deb dependency-a=1.2.3-1 dependency-b=1.9.1-3
 ```
 
 3. Use private repositories as package sources and make sure they only contain packages that match the dependent packages' versions.
+
+
+## Pipelines
+
+### Azure DevOps
+The sample Azure DevOps [pipeline](./.azdo/pipelines/release-packages.yml) shows how to generate and publish dependency/pinning packages to Artifactory. It assumes that multiple distinct environments are targeted: DEV, TEST, PROD. For each of these environments, a distinct variable group needs to be preconfigured in Azure DevOps. Each of these groups is expected to contain the following variables:
+- ARTIFACTORY-USERNAME: The username authorized to push packages to Artifactory
+- ARTIFACTORY-PASSWORD: The password authenticating the ARTIFACTORY-USERNAME
+- ARTIFACTORY-URL: The base URL of the targeted Artifactory instance, e.g. https://{your-instance}.jfrog.io/artifactory/{your-repository}
+
+The TEST and PROD stages require the manual approval of an authorized Azure DevOps user before they are executed.
+
+In order to allow the pipeline to push the tag to the GIT repository, make sure to allow the "Build Service" to contribute to the corresponding repository (AzDo->Project Settings->Repositories->{Your Repo}->Security->{* Build Service}->Contribute->Allow).
+
+### GitHub
+The sample GitHub [workflow](./.github/workflows/generate-package.yml) shows how to generate and publish dependency/pinning packages using the built-in GitHub Releases.
