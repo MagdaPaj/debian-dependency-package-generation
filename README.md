@@ -76,5 +76,7 @@ The sample Azure DevOps [pipeline](./.azdo/pipelines/release-packages.yml) shows
 
 The TEST and PROD stages require the manual approval of an authorized Azure DevOps user before they are executed.
 
+In order to allow the pipeline to push the tag to the GIT repository, make sure to allow the "Build Service" to contribute to the corresponding repository (AzDo->Project Settings->Repositories->{Your Repo}->Security->{* Build Service}->Contribute->Allow).
+
 ### GitHub
 The sample GitHub [workflow](./.github/workflows/generate-package.yml) shows how to generate and publish dependency/pinning packages using the built-in GitHub Releases.
