@@ -1,8 +1,20 @@
 # Debian dependency package generation
 
-A dependency package represents a desired state of a system, which is defined by a list of Debian packages with corresponding versions. All required packages are captured as dependencies in the control file of an otherwise shallow Debian package. APT will try to automatically resolve and install these dependencies when running `apt install dependency-pack`. APT is very opinionated about which dependent package version to install when resolving dependencies: It will always try to install the latest available package version that can be found in all source package repositories unless instructed differently using [APT preferences](https://manpages.debian.org/bullseye/apt/apt_preferences.5.en.html).
+## Motivation
+
+In device management, it is valuable to have the fleet of devices as consistent as possible. This helps in testing software releases and makes it easier to debug issues on remote devices.
+
+If performing package based updates, one topic to consider is how to avoid drift between the initial device image and the state of the device fleet.
+
+One additional consideration is that APT is very opinionated about which dependent package version to install when resolving dependencies. APT will always try to install the latest available package version that can be found in all source package repositories unless instructed differently using [APT preferences](https://manpages.debian.org/bullseye/apt/apt_preferences.5.en.html).
+
+## Approach with a dependency package
+
+A dependency package represents a desired state of a system, which is defined by a list of Debian packages with corresponding versions. All required packages are captured as dependencies in the control file of an otherwise shallow Debian package. APT will try to automatically resolve and install these dependencies when running `apt install dependency-pack`.
 
 This repository contains pipelines and scripts for generating the Debian dependency package and its optional companion package that modifies the APT preferences to force the installation of the exact version of the dependent package.
+
+The dependency package can be referred to when generating the initial device image and when issuing package updates to the device fleet. This way, the same desired state should be represented in both.
 
 ## Structure of dependency packages
 
