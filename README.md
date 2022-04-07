@@ -12,13 +12,13 @@ One additional consideration is that APT is very opinionated about which depende
 
 A dependency package represents a desired state of a system, which is defined by a list of Debian packages with corresponding versions. All required packages are captured as dependencies in the control file of an otherwise shallow Debian package. APT will try to automatically resolve and install these dependencies when running `apt install dependency-pack`.
 
-This repository contains pipelines and scripts for generating the Debian dependency package and its optional companion package that modifies the APT preferences to force the installation of the exact version of the dependent package.
+This repository contains pipelines and scripts for generating the Debian dependency package and its optional pinning package that modifies the APT preferences to force the installation of the exact version of the dependent package.
 
 The dependency package can be referred to when generating the initial device image and when issuing package updates to the device fleet. This way, the same desired state should be represented in both.
 
 ## Structure of dependency packages
 
-Dependency packages consist of a `control` file defining the desired state by enumerating all dependencies in the `Depends: ` section.
+Dependency packages consist of a `control` file defining the desired state by enumerating all dependencies in the `Depends` section. Packages to be removed are listed under `Conflicts`.
 
 ```
 Package: dependency-pack
@@ -26,13 +26,14 @@ Version: 0.0.1
 Architecture: amd64
 Maintainer: YourName <YourName@YourCompany>
 Depends: dependency-a (=1.2.3-1), dependency-b(=1.9.1-3)
+Conflicts: package-to-remove (=1.1.1)
 Description: Dependency Pack.
  You can add a longer description here. Mind the space at the beginning of this paragraph.
 ```
 
-## Structure of companion packages
+## Structure of pinning packages
 
-Companion packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d/` during installation. Every dependent package results in an entry with the following structure:
+Pinning packages consist of a plain `control` file and an additional APT preference file that will be placed under `etc/apt/preferences.d/` during their installation. Every dependent package results in an entry with the following structure:
 
 ```
 Package: aziot-identity-service
@@ -42,16 +43,19 @@ Pin-Priority: 1001
 
 The impact of APT preferences can be inspected by running `apt-cache policy your-package-name`.
 
+## Capturing package snapshots
+
+The `package-history` folder contains a list of package snapshots. To enable the later removal of packages that come preinstalled with the base image, the contents of the latter need to be captured as the original state. In this sample repository, the original snapshot was named `0`. Later snapshots must be named incrementally according to the timestamp of their creation (c.f. [script](./src/create-package-snapshot.sh)).
 
 ## Release creation
 
-To create a new dependency package, a new release must be created. To do so:
+To create a new dependency/pinning package, a new release must be created. To do so:
 
 1. create a new file under `package-history` folder using the current value of `$EPOCHSECONDS` as a file name
 2. in the newly create file, put each package name and its pinned version on a new line, e.g. `package-name (=1.1.0-1)`
 3. commit and push your changes
 4. create a new tag following the semantic versioning (e.g. `git tag v0.0.5`)
-5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with the dependency and companion package as assets.
+5. push the tag `git push --tags`, this will automatically trigger a GitHub workflow that will create a new release with the dependency and pinning package as assets.
 
 ## Package installation
 
@@ -63,7 +67,7 @@ sudo apt install ./dependency-pack.deb
 
 If there is an error with unmet dependencies because APT would like to install a newer version of a dependent package, you have multiple options to force the installation of the pinned versions.
 
-1. Install the companion package first
+1. Install the pinning package first
 ```bash
 sudo apt install ./pinning-pack.deb
 sudo apt install ./dependency-pack.deb
