@@ -38,17 +38,17 @@ echo "Description: Dependency Pack." >> control
 dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack"
 mv "$outputFolder/dependency-pack.deb" "$outputFolder/dependency-pack_$versionTag.deb"
 
-mkdir -p $outputFolder/dependency-pack-pinning/DEBIAN
-cd $outputFolder/dependency-pack-pinning/DEBIAN
+mkdir -p $outputFolder/pinning-pack/DEBIAN
+cd $outputFolder/pinning-pack/DEBIAN
 
-echo "Package: dependency-pack-pinning" > control
+echo "Package: pinning-pack" > control
 echo "Version: $versionTag-$current" >> control
 echo "Architecture: all" >> control
 echo "Maintainer: YourName <YourName@YourCompany>" >> control
 echo "Description: Dependency Package Version Pinning." >> control
 
-mkdir -p $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
-cd $outputFolder/dependency-pack-pinning/etc/apt/preferences.d
+mkdir -p $outputFolder/pinning-pack/etc/apt/preferences.d
+cd $outputFolder/pinning-pack/etc/apt/preferences.d
 echo "" > 1001-honor-dependency-pack
 
 while IFS= read -r line
@@ -63,5 +63,5 @@ done < "$packageFolder/delta"
 
 rm $packageFolder/delta
 
-dpkg-deb --build --root-owner-group "$outputFolder/dependency-pack-pinning"
-mv "$outputFolder/dependency-pack-pinning.deb" "$outputFolder/dependency-pack-pinning_$versionTag.deb"
+dpkg-deb --build --root-owner-group "$outputFolder/pinning-pack"
+mv "$outputFolder/pinning-pack.deb" "$outputFolder/pinning-pack_$versionTag.deb"

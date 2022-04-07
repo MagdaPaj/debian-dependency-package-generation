@@ -35,4 +35,4 @@ jobs:
           files: |
             output/dependency-pack/DEBIAN/control
             output/dependency-pack.deb
-            output/dependency-pack-pinning.deb
+            output/pinning-pack.deb

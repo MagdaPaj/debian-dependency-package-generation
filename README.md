@@ -65,7 +65,7 @@ If there is an error with unmet dependencies because APT would like to install a
 
 1. Install the companion package first
 ```bash
-sudo apt install ./dependency-pack-pinning.deb
+sudo apt install ./pinning-pack.deb
 sudo apt install ./dependency-pack.deb
 ```
 
