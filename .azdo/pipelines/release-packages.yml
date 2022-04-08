@@ -19,8 +19,8 @@ variables:
     value: "${{ parameters.MAJOR }}.${{ parameters.MINOR }}.${{ parameters.PATCH }}"
   - name: DEPENDENCY-PACK-NAME
     value: "dependency-pack_$(VERSION-ID).deb"
-  - name: DEPENDENCY-PACK-PINNING-NAME
-    value: "dependency-pack-pinning_$(VERSION-ID).deb"
+  - name: PINNING-PACK-NAME
+    value: "pinning-pack_$(VERSION-ID).deb"
 
 stages:
 - stage: TAG
@@ -57,7 +57,7 @@ stages:
 
     - script: |
         curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
-        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(PINNING-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(PINNING-PACK-NAME)"
       displayName: 'Upload packages to Artifactory'
       env: # this is required for secret library variables
           USERNAME: $(ARTIFACTORY-USERNAME)
@@ -90,7 +90,7 @@ stages:
 
     - script: |
         curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
-        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(PINNING-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(PINNING-PACK-NAME)"
       displayName: 'Upload packages to Artifactory'
       env: # this is required for secret library variables
           USERNAME: $(ARTIFACTORY-USERNAME)
@@ -123,7 +123,7 @@ stages:
 
     - script: |
         curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-NAME)" &&
-        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(DEPENDENCY-PACK-PINNING-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(DEPENDENCY-PACK-PINNING-NAME)"
+        curl -u "$USERNAME:$PASSWORD" -XPUT "$(ARTIFACTORY-URL)/$(PINNING-PACK-NAME);deb.distribution=focal;deb.component=main;deb.architecture=amd64;deb.architecture=64bit-arm" -T "output/$(PINNING-PACK-NAME)"
       displayName: 'Upload packages to Artifactory'
       env: # this is required for secret library variables
           USERNAME: $(ARTIFACTORY-USERNAME)
